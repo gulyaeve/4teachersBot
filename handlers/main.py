@@ -23,7 +23,6 @@ async def cmd_start_user(message: types.Message):
     """
     log(INFO, f"USER [{message.from_user.id}] нажал START.")
     await message.reply("Добро пожаловать в чат-бот!")
-    # await message.answer("🔧 Для создания запроса на техподдержку выберите команду:\n<b>/request</b>")
 
 
 # You can use state '*' if you need to handle all states

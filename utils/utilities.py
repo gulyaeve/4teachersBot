@@ -21,18 +21,6 @@ async def notify_admins(message):
         log(INFO, f"Admin [{bot_admin}] block this bot")
 
 
-# async def make_dict(r_json, key_name, value_name):
-#     keys = []
-#     values = []
-#     for item in r_json:
-#         for attribute, value in item.items():
-#             if attribute == key_name:
-#                 keys.append(value)
-#             if attribute == value_name:
-#                 values.append(value)
-#     return dict(zip(keys, values))
-
-
 def get_key(d: dict, value):
     for k, v in d.items():
         if v == value:
@@ -45,18 +33,6 @@ def make_keyboard(buttons: dict):
         keyboard.add(button)
     keyboard.add("ОТМЕНА")
     return keyboard
-
-
-# def get_id_from_telegram(user_id):
-#     return file_system.read("users")[str(user_id)]["id4me"]
-
-
-# def get_telegram_from_id(id4me):
-#     telegram_id = ''
-#     for user_id in file_system.read("users"):
-#         if file_system.read("users")[user_id]["id4me"] == id4me:
-#             telegram_id = str(user_id)
-#     return telegram_id
 
 
 def make_text(input_text):
