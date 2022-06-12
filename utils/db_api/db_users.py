@@ -89,6 +89,7 @@ class DatabaseUsers:
                 result = await connection.fetchrow(command, *args)
             elif execute:
                 result = await connection.execute(command, *args)
+        await self.close()
         return result
 
     # Это можно просто скопировать для корректной работы с соединениями
