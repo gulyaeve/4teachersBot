@@ -11,15 +11,6 @@ class DatabaseLevelExp:
     def __init__(self):
         self._pool: Optional[asyncpg.Pool] = None
 
-    async def create_table_level_exp(self):
-        sql = """
-        CREATE TABLE IF NOT EXISTS level_exp_list (
-        id SERIAL PRIMARY KEY,
-        name text
-        );
-        """
-        await self.execute(sql, execute=True)
-
     @staticmethod
     def format_args(sql, parameters: dict):
         sql += " AND ".join([

@@ -11,24 +11,6 @@ class DatabaseLogging:
     def __init__(self):
         self._pool: Optional[asyncpg.Pool] = None
 
-    async def create_table_datalog(self):
-        sql = """
-        CREATE TABLE IF NOT EXISTS action_code_list (
-        id integer PRIMARY KEY,
-        name text,
-        type text
-        );
-        CREATE TABLE IF NOT EXISTS data_log (
-        id SERIAL PRIMARY KEY,
-        code_id integer REFERENCES action_code_list(id),
-        change_data text,
-        new_data text,
-        time_created timestamp without time zone DEFAULT timezone('utc'::text, now()),
-        user_id integer REFERENCES users(id)
-        );
-        """
-        await self.execute(sql, execute=True)
-
     @staticmethod
     def format_args(sql, parameters: dict):
         sql += " AND ".join([

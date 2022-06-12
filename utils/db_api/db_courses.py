@@ -11,18 +11,6 @@ class DatabaseCourses:
     def __init__(self):
         self._pool: Optional[asyncpg.Pool] = None
 
-    async def create_table_courses(self):
-        sql = """
-        CREATE TABLE IF NOT EXISTS courses_list (
-        id SERIAL PRIMARY KEY,
-        name character varying(255),
-        description text,
-        duration integer,
-        tag json
-        );
-        """
-        await self.execute(sql, execute=True)
-
     @staticmethod
     def format_args(sql, parameters: dict):
         sql += " AND ".join([

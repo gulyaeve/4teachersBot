@@ -11,25 +11,6 @@ class DatabaseUsers:
     def __init__(self):
         self._pool: Optional[asyncpg.Pool] = None
 
-    async def create_table_users(self):
-        sql = """
-        CREATE TABLE IF NOT EXISTS type_student_list (
-        id SERIAL PRIMARY KEY,
-        name text
-        );
-        CREATE TABLE IF NOT EXISTS users (
-        id SERIAL PRIMARY KEY,
-        full_name character varying(255) NOT NULL,
-        username character varying(255),
-        telegram_id bigint NOT NULL UNIQUE,
-        datebirth date,
-        custom_name character varying(255),
-        time_created timestamp without time zone DEFAULT timezone('utc'::text, now()),
-        type_student_id integer REFERENCES type_student_list(id)
-        );
-        """
-        await self.execute(sql, execute=True)
-
     @staticmethod
     def format_args(sql, parameters: dict):
         sql += " AND ".join([

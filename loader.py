@@ -5,6 +5,7 @@ from aiogram.contrib.fsm_storage.memory import MemoryStorage
 
 from config import telegram_token
 from utils.db_api.db_courses import DatabaseCourses
+from utils.db_api.db_create import DatabaseCreate
 from utils.db_api.db_level_exp import DatabaseLevelExp
 from utils.db_api.db_theme_courses import DatabaseThemeCourses
 from utils.db_api.db_users import DatabaseUsers
@@ -16,6 +17,7 @@ storage = MemoryStorage()
 dp = Dispatcher(bot, storage=storage)
 
 # Database objects
+db_create = DatabaseCreate()
 db_users = DatabaseUsers()
 db_log = DatabaseLogging()
 db_courses = DatabaseCourses()
