@@ -66,17 +66,25 @@ async def course_callback(callback: types.CallbackQuery, state: FSMContext):
 
 
 @dp.message_handler(state=Course.LevelExp)
-async def level_exp(message: types.Message, state: FSMContext):
+async def level_exp_set(message: types.Message, state: FSMContext):
     try:
         level_exp = await db_level_exp.select_level(name=message.text)
         async with state.proxy() as data:
             data["level_exp_id"] = level_exp["id"]
-        await message.reply("Оцени (от 1 до 5) свой уровень владения данной темой?")
+        await message.reply("Оцени на сколько ты владеешь данной темой? (от 1 до 5, где 5 - владение в совершенстве)")
         await Course.LevelUser.set()
     except:
         return await message.answer("Выбери пожалуйста на клавиатуре:")
 
 
+@dp.message_handler(Regexp("([1-5]*)"), state=Course.LevelUser)
+async def level_user_set(message: types.Message, state: FSMContext):
+    await message.answer(f"Ты ввел {message.text}")
+
+
+@dp.message_handler(state=Course.LevelUser)
+async def level_user_set(message: types.Message, state: FSMContext):
+    return await message.answer(f"Ты ввел {message.text}")
 # @dp.message_handler(state=Course.Duration)
 # async def purpose_duration(message: types.Message):
 #     await message.answer("Сколько времени в неделю ты готов(а) уделять в неделю?")
