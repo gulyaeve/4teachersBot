@@ -77,7 +77,7 @@ async def level_exp_set(message: types.Message, state: FSMContext):
         return await message.answer("Выбери пожалуйста на клавиатуре:")
 
 
-@dp.message_handler(Regexp("([1-5]*)"), state=Course.LevelUser)
+@dp.message_handler(Regexp("^[1-5]"), state=Course.LevelUser)
 async def level_user_set(message: types.Message, state: FSMContext):
     await message.answer(f"Ты ввел {message.text}. И это подходит")
 
