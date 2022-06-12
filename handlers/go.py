@@ -92,7 +92,7 @@ async def level_user_set(message: types.Message, state: FSMContext):
     course_duration = await db.calculate_hours(course_id=data['course_id'])
     log(INFO, course_duration)
     # course_duration = 592
-    msg += f" 🔹 Всего <b>{course_duration}</b> часов."
+    msg += f" 🔹 Всего <b>{course_duration['sum']}</b> часов."
     async with state.proxy() as data:
         data["level_user"] = int(message.text)
         data["course_duration"] = course_duration
