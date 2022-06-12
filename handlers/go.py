@@ -168,9 +168,10 @@ async def user_date_start_set(message: types.Message, state: FSMContext):
                                  f"и я cкорректирую индивидуальную траектория обучения.")
             count_user_courses = await db.count_user_courses(user['id'])
             achievement_start = await db.count_user_achievement(user['id'], 1)
+            await state.finish()
             if count_user_courses['count'] == 1 and achievement_start['count'] == 0:
                 await db.add_achievement(1, user['id'])
-                achievement = await db.select_achievement(achievement_id=1)
+                achievement = await db.select_achievement(id=1)
                 log(INFO, f"[{message.from_user.id}] get achievement {achievement['name']}")
                 await message.answer(f"🏆 Поздравляю! Достижение открыто!\n"
                                      f"<b>{achievement['name']}</b>")
