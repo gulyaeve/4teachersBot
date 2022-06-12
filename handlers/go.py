@@ -17,10 +17,7 @@ from utils.utilities import make_keyboard_list
 
 class Course(StatesGroup):
     Name = State()
-    Duration = State()
-    Week = State()
-    Connect = State()
-    Hold = State()
+    Direction = State()
 
 
 @dp.message_handler(AuthCheck(), commands=['go'])
@@ -44,12 +41,13 @@ async def purpose_name(message: types.Message, state: FSMContext):
             inline_button = InlineKeyboardButton(course["name"], callback_data=f"course_{course['id']}")
             inline_keyboard.add(inline_button)
         await message.answer("Уточни, на каком курсе ты обучаешся:", reply_markup=inline_keyboard)
+        await Course.Direction.set()
     else:
         await message.answer("Таких курсов нет, попробуй снова <b>/go</b>")
         await state.finish()
 
 
-@dp.callback_query_handler(Regexp('course_([0-9]*)'))
+@dp.callback_query_handler(Regexp('course_([0-9]*)'), state=Course.Direction)
 async def course_callback(callback: types.CallbackQuery):
     log(INFO, callback.data)
     # course = await db_courses.select_courses(id=callback.data.split("_")[1])
