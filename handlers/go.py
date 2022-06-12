@@ -3,6 +3,7 @@
 """
 from aiogram import types
 from aiogram.dispatcher import FSMContext
+from aiogram.dispatcher.filters import Regexp
 from aiogram.dispatcher.filters.state import StatesGroup, State
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 
@@ -23,7 +24,7 @@ class Course(StatesGroup):
 @dp.message_handler(AuthCheck(), commands=['go'])
 async def start_course(message: types.Message):
     await message.reply("Чтобы помочь тебе сохранять фокус ответь на несколько моих вопросов. 😇")
-    await message.answer("С чем связан твой курс? (Например: <code>Python</code>)")
+    await message.answer("С чем связан твой курс? (Например: <code>Python</code> или <code>Data Science</code>)")
     await Course.Name.set()
 
 
@@ -38,16 +39,19 @@ async def purpose_name(message: types.Message, state: FSMContext):
     if courses:
         inline_keyboard = InlineKeyboardMarkup()
         for course in courses:
-            inline_button = InlineKeyboardButton(course["name"], callback_data=course["id"])
+            inline_button = InlineKeyboardButton(course["name"], callback_data=f"course_{course['id']}")
             inline_keyboard.add(inline_button)
         await message.answer("Уточни, на каком курсе ты обучаешся:", reply_markup=inline_keyboard)
     else:
         await message.answer("Таких курсов нет, попробуй снова <b>/go</b>")
         await state.finish()
-    # print(courses)
-    # await message.answer(courses)
-    # await message.answer("Сколько длится весь курс?")
-    # await Course.Duration.set()
+
+
+@dp.callback_query_handler(Regexp('course_([0-9]*)'))
+async def course_callback(callback: types.CallbackQuery):
+    await callback.answer(f"Отличный выбор. А ты знаешь, что более 50% слушателей выбирают {callback.message.text}"
+                          f"IT-направление и кардинально меняют свою профессиональную деятельность.\n"
+                          f"А почему ты выбрал это направление?")
 
 
 # @dp.message_handler(state=Course.Duration)
