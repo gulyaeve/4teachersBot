@@ -175,6 +175,6 @@ async def user_date_start_set(message: types.Message, state: FSMContext):
                 log(INFO, f"[{message.from_user.id}] get achievement {achievement['name']}")
                 await message.answer(f"🏆 Поздравляю! Достижение открыто!\n"
                                      f"<b>{achievement['name']}</b>")
-                await message.answer_photo(InputFile(f"images/achievements/{achievement['image']}"))
+                await message.answer_photo(InputFile(f"{achievement['image']}"))
     else:
         return await message.reply("Введи корректную дату.")
