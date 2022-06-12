@@ -161,7 +161,7 @@ async def user_date_start_set(message: types.Message, state: FSMContext):
         else:
             new_course = await db.add_course(user['id'], date_start, day_finish,
                                              data['level_exp_id'], data['level_user'], data['course_id'])
-            await db.add_log(2, user['id'], data['course_id'], None)
+            await db.add_log(2, user['id'], str(data['course_id']), None)
             log(INFO, f"[{message.from_user.id}] start course [{new_course}]")
             await message.answer(f"Расчетное время окончания обучения <b>{day_finish_rus}</b>, "
                                  f"как только у тебя появится больше времени для обучения пиши мне <b>/finish</b> "
