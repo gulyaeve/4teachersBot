@@ -1,7 +1,7 @@
 """
 Хэндлер команды /go, для сбора информации о курсе
 """
-from datetime import date, timedelta, datetime
+from datetime import timedelta, datetime
 from logging import log, INFO
 
 from aiogram import types
@@ -149,7 +149,7 @@ async def user_date_start_set(message: types.Message, state: FSMContext):
         course_duration = int(data['course_duration'])
         user_hours_per_day = int(data['user_hours_per_day'])
         date_start = datetime.strptime(input_date, '%Y-%m-%d')
-        today = date.today()
+        today = datetime.today()
         weeks = round(course_duration / user_hours_per_day / 6, 0) + \
                 round(round(course_duration / user_hours_per_day / 6, 0) / 3, 0)
         day_finish = date_start + timedelta(weeks=weeks)
