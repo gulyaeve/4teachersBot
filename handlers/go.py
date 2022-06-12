@@ -23,7 +23,7 @@ class Course(StatesGroup):
 @dp.message_handler(AuthCheck(), commands=['go'])
 async def start_course(message: types.Message):
     await message.reply("Чтобы помочь тебе сохранять фокус ответь на несколько моих вопросов. 😇")
-    await message.answer("С чем связан твой курс? (Например: <code>Python</code> или <code>Data Science</code>)")
+    await message.answer("С чем связан твой курс? (Например: <code>Python</code> или <code>Data Scientist</code>)")
     await Course.Name.set()
 
 
@@ -50,9 +50,9 @@ async def purpose_name(message: types.Message, state: FSMContext):
 @dp.callback_query_handler(Regexp('course_([0-9]*)'), state=Course.Direction)
 async def course_callback(callback: types.CallbackQuery, state: FSMContext):
     course = await db_courses.select_courses(id=int(callback.data.split("_")[1]))
-    await callback.answer(f"Отличный выбор. А ты знаешь, что более 50% слушателей выбирают {course['name']}"
-                          f"IT-направление и кардинально меняют свою профессиональную деятельность.\n"
-                          f"А почему ты выбрал это направление?")
+    await callback.message.answer(f"Отличный выбор. А ты знаешь, что более 50% слушателей выбирают {course['name']}"
+                                  f"IT-направление и кардинально меняют свою профессиональную деятельность.\n"
+                                  f"А почему ты выбрал это направление?")
 
 
 # @dp.message_handler(state=Course.Duration)
