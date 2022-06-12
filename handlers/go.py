@@ -2,6 +2,7 @@
 Хэндлер команды /go, для сбора информации о курсе
 """
 from aiogram import types
+from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters.state import StatesGroup, State
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 
@@ -32,13 +33,17 @@ async def start_course(message: types.Message):
 
 
 @dp.message_handler(state=Course.Name)
-async def purpose_name(message: types.Message):
+async def purpose_name(message: types.Message, state: FSMContext):
     courses = await db_courses.find_course(f'%{message.text}%')
-    inline_keyboard = InlineKeyboardMarkup()
-    for course in courses:
-        inline_button = InlineKeyboardButton(course["name"], callback_data=course["id"])
-        inline_keyboard.add(inline_button)
-    await message.answer("Уточни, на каком курсе ты обучаешся:", reply_markup=inline_keyboard)
+    if courses:
+        inline_keyboard = InlineKeyboardMarkup()
+        for course in courses:
+            inline_button = InlineKeyboardButton(course["name"], callback_data=course["id"])
+            inline_keyboard.add(inline_button)
+        await message.answer("Уточни, на каком курсе ты обучаешся:", reply_markup=inline_keyboard)
+    else:
+        await message.answer("Таких курсов нет, попробуй снова <b>/go</b>")
+        await state.finish()
     # print(courses)
     # await message.answer(courses)
     # await message.answer("Сколько длится весь курс?")
