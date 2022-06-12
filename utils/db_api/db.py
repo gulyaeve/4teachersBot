@@ -14,79 +14,85 @@ class Database:
     async def create_tables(self):
         sql = """
         CREATE TABLE IF NOT EXISTS type_student_list (
-        id SERIAL PRIMARY KEY,
-        name text
+            id SERIAL PRIMARY KEY,
+            name text
         );
         
         CREATE TABLE IF NOT EXISTS users (
-        id SERIAL PRIMARY KEY,
-        full_name character varying(255) NOT NULL,
-        username character varying(255),
-        telegram_id bigint NOT NULL UNIQUE,
-        datebirth date,
-        custom_name character varying(255),
-        time_created timestamp without time zone DEFAULT timezone('utc'::text, now()),
-        type_student_id integer REFERENCES type_student_list(id)
+            id SERIAL PRIMARY KEY,
+            full_name character varying(255) NOT NULL,
+            username character varying(255),
+            telegram_id bigint NOT NULL UNIQUE,
+            datebirth date,
+            custom_name character varying(255),
+            time_created timestamp without time zone DEFAULT timezone('utc'::text, now()),
+            type_student_id integer REFERENCES type_student_list(id)
         );
         
         CREATE TABLE IF NOT EXISTS action_code_list (
-        id integer PRIMARY KEY,
-        name text,
-        type text
+            id integer PRIMARY KEY,
+            name text,
+            type text
         );
         
         CREATE TABLE IF NOT EXISTS data_log (
-        id SERIAL PRIMARY KEY,
-        code_id integer REFERENCES action_code_list(id),
-        change_data text,
-        new_data text,
-        time_created timestamp without time zone DEFAULT timezone('utc'::text, now()),
-        user_id integer REFERENCES users(id)
+            id SERIAL PRIMARY KEY,
+            code_id integer REFERENCES action_code_list(id),
+            change_data text,
+            new_data text,
+            time_created timestamp without time zone DEFAULT timezone('utc'::text, now()),
+            user_id integer REFERENCES users(id)
         );
         
         CREATE TABLE IF NOT EXISTS courses_list (
-        id SERIAL PRIMARY KEY,
-        name character varying(255),
-        description text,
-        duration integer,
-        tag json
+            id SERIAL PRIMARY KEY,
+            name character varying(255),
+            description text,
+            duration integer,
+            tag json
         );
         
         CREATE TABLE IF NOT EXISTS theme_courses (
-        id SERIAL PRIMARY KEY,
-        course_id integer REFERENCES courses_list(id),
-        name text,
-        duration integer
+            id SERIAL PRIMARY KEY,
+            course_id integer REFERENCES courses_list(id),
+            name text,
+            duration integer
         );
         
         CREATE TABLE IF NOT EXISTS level_exp_list (
-        id SERIAL PRIMARY KEY,
-        name text
+            id SERIAL PRIMARY KEY,
+            name text
         );
         
         CREATE TABLE IF NOT EXISTS user_courses (
-        id integer PRIMARY KEY,
-        user_id bigint REFERENCES users(id),
-        course_date_start timestamp without time zone DEFAULT timezone('utc'::text, now()),
-        course_date_end timestamp without time zone,
-        course_date_end_fact timestamp without time zone,
-        course_level_exp_id integer REFERENCES level_exp_list(id),
-        level_user integer,
-        course_id integer REFERENCES courses_list(id)
+            id integer PRIMARY KEY,
+            user_id bigint REFERENCES users(id),
+            course_date_start timestamp without time zone DEFAULT timezone('utc'::text, now()),
+            course_date_end timestamp without time zone,
+            course_date_end_fact timestamp without time zone,
+            course_level_exp_id integer REFERENCES level_exp_list(id),
+            level_user integer,
+            course_id integer REFERENCES courses_list(id)
         );
         
         CREATE TABLE IF NOT EXISTS achievements_list (
-        id SERIAL PRIMARY KEY,
-        image text,
-        name text,
-        description text
+            id SERIAL PRIMARY KEY,
+            image text,
+            name text,
+            description text
         );
         
         CREATE TABLE IF NOT EXISTS user_achievements (
-        id SERIAL PRIMARY KEY,
-        time_reciept timestamp without time zone DEFAULT timezone('utc'::text, now()),
-        user_id bigint REFERENCES users(id),
-        achievement_id integer REFERENCES achievements_list(id)
+            id SERIAL PRIMARY KEY,
+            time_reciept timestamp without time zone DEFAULT timezone('utc'::text, now()),
+            user_id bigint REFERENCES users(id),
+            achievement_id integer REFERENCES achievements_list(id)
+        );
+        
+        CREATE TABLE IF NOT EXISTS stikers_list (
+            id SERIAL PRIMARY KEY,
+            code text,
+            emoji text
         );
         """
         await self.execute(sql, execute=True)
@@ -216,6 +222,11 @@ class Database:
     async def count_user_achievement(self, user_id, achievement_id):
         sql = "SELECT COUNT(*) FROM user_achievements WHERE achievement_id = $1 AND user_id = $2"
         return await self.execute(sql, user_id, achievement_id, fetchrow=True)
+
+    async def select_stiker(self, **kwargs):
+        sql = "SELECT * FROM stikers_list WHERE "
+        sql, parameters = self.format_args(sql, parameters=kwargs)
+        return await self.execute(sql, *parameters, fetchrow=True)
 
     async def execute(self, command, *args,
                       fetch: bool = False,

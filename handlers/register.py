@@ -26,6 +26,8 @@ class Register(StatesGroup):
 @dp.message_handler(commands=['start'])
 async def start_register(message: types.Message):
     user = await db.select_user(telegram_id=message.from_user.id)
+    stiker_smile = await db.select_stiker(emoji="smile")
+    await message.answer_sticker(stiker_smile['code'])
     if user["custom_name"] is None:
         fullname = user["full_name"]
     else:
