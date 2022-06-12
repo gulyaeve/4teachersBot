@@ -201,7 +201,7 @@ class Database:
         return await self.execute(sql, user_id, course_date_start, course_date_end, course_level_exp_id, level_user, course_id, fetchrow=True)
 
     async def add_achievement(self, achievement_id, user_id):
-        sql = "INSERT INTO user_achivements (achievement_id, user_id) VALUES ($1, $2) returning *"
+        sql = "INSERT INTO user_achievements (achievement_id, user_id) VALUES ($1, $2) returning *"
         return await self.execute(sql, achievement_id, user_id, fetchrow=True)
 
     async def select_achievement(self, **kwargs):
