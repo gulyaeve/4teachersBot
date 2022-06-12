@@ -79,12 +79,13 @@ async def level_exp_set(message: types.Message, state: FSMContext):
 
 @dp.message_handler(Regexp("([1-5]*)"), state=Course.LevelUser)
 async def level_user_set(message: types.Message, state: FSMContext):
-    await message.answer(f"Ты ввел {message.text}")
+    await message.answer(f"Ты ввел {message.text}. И это подходит")
+
 
 
 @dp.message_handler(state=Course.LevelUser)
 async def level_user_set(message: types.Message, state: FSMContext):
-    return await message.answer(f"Ты ввел {message.text}")
+    return await message.answer(f"Ты ввел {message.text} и это не подходит. Введи число от 1 до 5.")
 # @dp.message_handler(state=Course.Duration)
 # async def purpose_duration(message: types.Message):
 #     await message.answer("Сколько времени в неделю ты готов(а) уделять в неделю?")
