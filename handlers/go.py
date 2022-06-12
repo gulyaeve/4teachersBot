@@ -80,9 +80,15 @@ async def level_exp_set(message: types.Message, state: FSMContext):
 
 @dp.message_handler(Regexp("^[1-5]"), state=Course.LevelUser)
 async def level_user_set(message: types.Message, state: FSMContext):
-    await message.answer(f"Ты ввел {message.text}. И это подходит")
     async with state.proxy() as data:
         data["level_user"] = int(message.text)
+    data = await state.get_data()
+    themes = db_theme_courses.select_theme_courses(id=data['course_id'])
+    msg = "Пока мы с тобой болтали я загрузил программу и готов ее адаптировать под тебя. Вот она:\n"
+    for theme in themes:
+        msg += f" 🔸 <i>{theme['name']}</i> - {theme['duration']} часа-ов\n"
+    await message.answer(msg)
+    await message.answer("Рутинные дела никто не отменял поэтому, сколько часов ты планируешь заниматься в неделю?")
     await Course.UserPlan.set()
 
 
@@ -93,11 +99,5 @@ async def level_user_set(message: types.Message, state: FSMContext):
 
 @dp.message_handler(state=Course.UserPlan)
 async def user_plan_set(message: types.Message, state: FSMContext):
-    data = await state.get_data()
-    themes = db_theme_courses.select_theme_courses(id=data['course_id'])
-    msg = "Пока мы с тобой болтали я загрузил программу и готов ее адаптировать под тебя. Вот она:\n"
-    for theme in themes:
-        msg += f" 🔸 <i>{theme['name']}</i> - {theme['duration']} часа-ов\n"
-    await message.answer(msg)
-    await message.answer("Рутинные дела никто не отменял поэтому, сколько часов ты планируешь заниматься в неделю?")
+    await message.answer(message.text)
 
