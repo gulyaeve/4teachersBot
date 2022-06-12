@@ -89,7 +89,7 @@ async def set_age(message: types.Message, state: FSMContext):
         buttons = []
         user_types = await db_users.select_all_types()
         for user_type in user_types:
-            buttons.append(user_type["Description"])
+            buttons.append(user_type["description"])
         keyboard = make_keyboard_list(buttons)
         await message.reply(f"Начиная изучать что-то, мы становимся на путь изменений и перемен. Если бы ты писал "
                             f"книгу о переменах, то для того, чтобы лучше всего передать будущим читателям максимум "
