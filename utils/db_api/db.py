@@ -84,9 +84,9 @@ class Database:
         
         CREATE TABLE IF NOT EXISTS user_achievements (
         id SERIAL PRIMARY KEY,
-        achivements_id text,
         time_reciept timestamp without time zone DEFAULT timezone('utc'::text, now()),
-        user_id bigint REFERENCES users(id)
+        user_id bigint REFERENCES users(id),
+        achievement_id integer REFERENCES achievements_list(id)
         );
         """
         await self.execute(sql, execute=True)
@@ -208,6 +208,14 @@ class Database:
         sql = "SELECT * FROM achievements_list WHERE "
         sql, parameters = self.format_args(sql, parameters=kwargs)
         return await self.execute(sql, *parameters, fetchrow=True)
+
+    async def count_user_courses(self, user_id):
+        sql = "SELECT COUNT(*) FROM user_courses WHERE user_id = $1"
+        return await self.execute(sql, user_id, fetchrow=True)
+
+    async def count_user_achievement(self, user_id, achievement_id):
+        sql = "SELECT COUNT(*) FROM user_achievements WHERE achievement_id = $1 AND user_id = $2"
+        return await self.execute(sql, user_id, achievement_id, fetchrow=True)
 
     async def execute(self, command, *args,
                       fetch: bool = False,

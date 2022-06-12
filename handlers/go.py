@@ -8,7 +8,7 @@ from aiogram import types
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters import Regexp
 from aiogram.dispatcher.filters.state import StatesGroup, State
-from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton, ReplyKeyboardRemove
+from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton, ReplyKeyboardRemove, InputFile
 
 from filters import AuthCheck
 from loader import dp, db
@@ -166,5 +166,13 @@ async def user_date_start_set(message: types.Message, state: FSMContext):
             await message.answer(f"Расчетное время окончания обучения <b>{day_finish_rus}</b>, "
                                  f"как только у тебя появится больше времени для обучения пиши мне <b>/finish</b> "
                                  f"и я cкорректирую индивидуальную траектория обучения.")
+            count_user_courses = await db.count_user_courses(user['id'])
+            achievement_start = await db.count_user_achievement(user['id'], 1)
+            if count_user_courses['count'] == 1 and achievement_start['count'] == 0:
+                await db.add_achievement(1, user['id'])
+                achievement = await db.select_achievement(achievement_id=1)
+                await message.answer(f"🏆 Поздравляю! Достижение открыто!\n"
+                                     f"<b>{achievement['name']}</b>")
+                await message.answer_photo(InputFile(f"images/achievements/{achievement['image']}"))
     else:
         return await message.reply("Введи корректную дату.")
