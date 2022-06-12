@@ -1,6 +1,8 @@
 # ChatBot by 4teachers team for MoscowCityHack
 Данный чат-бот помогает пользователям, которые обучаются на различных онлайн-курсах.
 
+В настоящий момент бот работает: [@focusedu_bot](https://t.me/focusedu_bot)
+
 ### Requirements
     Docker
     PostgreSQL database
