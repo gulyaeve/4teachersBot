@@ -90,8 +90,6 @@ async def level_user_set(message: types.Message, state: FSMContext):
     for theme in themes:
         msg += f" 🔸 <i>{theme['name']}</i> - {theme['duration']} часа-ов\n"
     course_duration = await db.calculate_hours(course_id=data['course_id'])
-    log(INFO, course_duration['sum'])
-    # course_duration = 592
     msg += f" 🔹 Всего <b>{course_duration['sum']}</b> часов."
     async with state.proxy() as data:
         data["level_user"] = int(message.text)
@@ -126,10 +124,12 @@ async def user_day_plan_set(message: types.Message, state: FSMContext):
     data = await state.get_data()
     calculated_hours_per_day = int(data['user_hours_per_week']) // 6
     if calculated_hours_per_day != int(data['user_hours_per_day']):
-        return await message.reply(f"Что-то пошло не так. При таком раскладе в день надо заниматься около "
+        await message.reply(f"Что-то пошло не так. При таком раскладе в день надо заниматься около "
                                    f"{int(data['user_hours_per_week'])} часов "
                                    f"или в неделю {int(data['user_hours_per_day']) * 6} часов. "
                                    f"Воскресенье - это святое, отдых.")
+        await message.answer("Введи ещё раз сколько часов ты хочешь заниматься в неделю?")
+        await Course.UserPlan.set()
     else:
         await message.answer("Рассчитал индивидуальный план. Давай сверим, что у меня получилось с твоими ожиданиями. "
                              "Когда ты планируешь приступить к занятиям?")
