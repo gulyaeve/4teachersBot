@@ -16,13 +16,15 @@ async def help_command(message: types.Message):
     await message.answer(help_message)
 
 
-@dp.message_handler(commands=['start'])
-async def cmd_start_user(message: types.Message):
-    """
-    Conversation's entry point
-    """
-    log(INFO, f"USER [{message.from_user.id}] нажал START.")
-    await message.reply("Добро пожаловать в чат-бот!")
+# @dp.message_handler(commands=['start'])
+# async def cmd_start_user(message: types.Message):
+#     """
+#     Conversation's entry point
+#     """
+#     log(INFO, f"USER [{message.from_user.id}] нажал START.")
+#     me = await bot.get_me()
+#     await message.reply(f"Добро пожаловать в чат-бот {me.full_name}!")
+#     await message.answer("Чтобы начать отслеживать свой прогресс выбери команду: <b>/go</b>")
 
 
 # You can use state '*' if you need to handle all states
