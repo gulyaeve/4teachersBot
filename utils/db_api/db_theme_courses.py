@@ -22,7 +22,7 @@ class DatabaseThemeCourses:
     async def select_theme_courses(self, **kwargs):
         sql = "SELECT * FROM theme_courses WHERE "
         sql, parameters = self.format_args(sql, parameters=kwargs)
-        return await self.execute(sql, *parameters, fetchrow=True)
+        return await self.execute(sql, *parameters, fetch=True)
 
     async def execute(self, command, *args,
                       fetch: bool = False,
