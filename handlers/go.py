@@ -146,8 +146,8 @@ async def user_date_start_set(message: types.Message, state: FSMContext):
     input_date = f"{message.text.split('.')[2]}-{message.text.split('.')[1]}-{message.text.split('.')[0]}"
     if await validate(input_date):
         data = await state.get_data()
-        course_duration = data['course_duration']
-        user_hours_per_day = data['user_hours_per_day']
+        course_duration = int(data['course_duration'])
+        user_hours_per_day = int(data['user_hours_per_day'])
         date_start = datetime.strptime(input_date, '%Y-%m-%d')
         today = date.today()
         weeks = round(course_duration / user_hours_per_day / 6, 0) + \
