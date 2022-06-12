@@ -11,13 +11,14 @@ from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 
 
 from filters import AuthCheck
-from loader import dp, db_courses
+from loader import dp, db_courses, db_level_exp
 from utils.utilities import make_keyboard_list
 
 
 class Course(StatesGroup):
     Name = State()
     Direction = State()
+    LevelExp = State()
 
 
 @dp.message_handler(AuthCheck(), commands=['go'])
@@ -50,9 +51,20 @@ async def purpose_name(message: types.Message, state: FSMContext):
 @dp.callback_query_handler(Regexp('course_([0-9]*)'), state=Course.Direction)
 async def course_callback(callback: types.CallbackQuery, state: FSMContext):
     course = await db_courses.select_courses(id=int(callback.data.split("_")[1]))
-    await callback.message.answer(f"Отличный выбор. А ты знаешь, что более 50% слушателей выбирают {course['name']}"
-                                  f"IT-направление и кардинально меняют свою профессиональную деятельность.\n"
-                                  f"А почему ты выбрал это направление?")
+    async with state.proxy() as data:
+        data["course_id"] = course["id"]
+    buttons = []
+    level_exps = db_level_exp.select_levels()
+    for level_exp in level_exps:
+        buttons.append(level_exp["name"])
+    keyboard = make_keyboard_list(buttons)
+    await callback.message.answer(f"Отличный выбор. А ты знаешь, что более 50% слушателей выбирают {course['name']} "
+                                  f"и кардинально меняют свою профессиональную деятельность.\n"
+                                  f"Как с тобой связана данная тема?", reply_markup=keyboard)
+    await Course.LevelExp.set()
+
+
+# @dp.message_handler(state=Course.LevelExp)
 
 
 # @dp.message_handler(state=Course.Duration)

@@ -5,6 +5,7 @@ from aiogram.contrib.fsm_storage.memory import MemoryStorage
 
 from config import telegram_token
 from utils.db_api.db_courses import DatabaseCourses
+from utils.db_api.db_level_exp import DatabaseLevelExp
 from utils.db_api.db_users import DatabaseUsers
 from utils.db_api.db_logging import DatabaseLogging
 
@@ -17,6 +18,7 @@ dp = Dispatcher(bot, storage=storage)
 db_users = DatabaseUsers()
 db_log = DatabaseLogging()
 db_courses = DatabaseCourses()
+db_level_exp = DatabaseLevelExp()
 
 # Logging setup
 logging.basicConfig(handlers=(logging.FileHandler('logs/log.txt'), logging.StreamHandler()),
