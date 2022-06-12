@@ -10,7 +10,7 @@ from aiogram.dispatcher.filters.state import StatesGroup, State
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton, ReplyKeyboardRemove
 
 from filters import AuthCheck
-from loader import dp, db_courses, db_level_exp
+from loader import dp, db_courses, db_level_exp, db_theme_courses
 from utils.utilities import make_keyboard_list
 
 
@@ -19,6 +19,7 @@ class Course(StatesGroup):
     Direction = State()
     LevelExp = State()
     LevelUser =State()
+    UserPlan = State()
 
 
 @dp.message_handler(AuthCheck(), commands=['go'])
@@ -82,6 +83,7 @@ async def level_user_set(message: types.Message, state: FSMContext):
     await message.answer(f"Ты ввел {message.text}. И это подходит")
     async with state.proxy() as data:
         data["level_user"] = int(message.text)
+    await Course.UserPlan.set()
 
 
 @dp.message_handler(state=Course.LevelUser)
@@ -89,18 +91,13 @@ async def level_user_set(message: types.Message, state: FSMContext):
     return await message.answer(f"Ты ввел {message.text} и это не подходит. Введи число от 1 до 5.")
 
 
-# @dp.message_handler(state=Course.Duration)
-# async def purpose_duration(message: types.Message):
-#     await message.answer("Сколько времени в неделю ты готов(а) уделять в неделю?")
-#     await Course.Week.set()
-#
-#
-#
-#
-#
-# @dp.message_handler(state=Course.Hold)
-# async def purpose_hold(message: types.Message):
-#     await message.answer("Начиная изучать что-то, мы становимся на путь изменений и перемен. Если бы ты писал книгу о "
-#                          "переменах, то для того, чтобы лучше всего передать будущим читателям максимум знаний, тебе "
-#                          "бы понадобилось:")
-#     await Course.Hold.set()
+@dp.message_handler(state=Course.UserPlan)
+async def user_plan_set(message: types.Message, state: FSMContext):
+    data = await state.get_data()
+    themes = db_theme_courses.select_theme_courses(id=data['course_id'])
+    msg = "Пока мы с тобой болтали я загрузил программу и готов ее адаптировать под тебя. Вот она:\n"
+    for theme in themes:
+        msg += f" 🔸 <i>{theme['name']}</i> - {theme['duration']} часа-ов\n"
+    await message.answer(msg)
+    await message.answer("Рутинные дела никто не отменял поэтому, сколько часов ты планируешь заниматься в неделю?")
+
