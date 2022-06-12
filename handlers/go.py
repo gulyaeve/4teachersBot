@@ -3,7 +3,7 @@
 """
 from aiogram import types
 from aiogram.dispatcher.filters.state import StatesGroup, State
-from aiogram.types import InlineKeyboardMarkup
+from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 
 
 from filters import AuthCheck
@@ -36,7 +36,8 @@ async def purpose_name(message: types.Message):
     courses = await db_courses.find_course(f'%{message.text}%')
     inline_keyboard = InlineKeyboardMarkup()
     for course in courses:
-        inline_keyboard.add(course["name"])
+        inline_button = InlineKeyboardButton(course["name"], callback_data=course["id"])
+        inline_keyboard.add(inline_button)
     await message.answer("Уточни, на каком курсе ты обучаешся:", reply_markup=inline_keyboard)
     # print(courses)
     # await message.answer(courses)
