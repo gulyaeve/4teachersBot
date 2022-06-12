@@ -6,10 +6,65 @@ import asyncpg
 import config
 
 
-class DatabaseUsers:
+class Database:
 
     def __init__(self):
         self._pool: Optional[asyncpg.Pool] = None
+
+    async def create_tables(self):
+        sql = """
+        CREATE TABLE IF NOT EXISTS type_student_list (
+        id SERIAL PRIMARY KEY,
+        name text
+        );
+        
+        CREATE TABLE IF NOT EXISTS users (
+        id SERIAL PRIMARY KEY,
+        full_name character varying(255) NOT NULL,
+        username character varying(255),
+        telegram_id bigint NOT NULL UNIQUE,
+        datebirth date,
+        custom_name character varying(255),
+        time_created timestamp without time zone DEFAULT timezone('utc'::text, now()),
+        type_student_id integer REFERENCES type_student_list(id)
+        );
+        
+        CREATE TABLE IF NOT EXISTS action_code_list (
+        id integer PRIMARY KEY,
+        name text,
+        type text
+        );
+        
+        CREATE TABLE IF NOT EXISTS data_log (
+        id SERIAL PRIMARY KEY,
+        code_id integer REFERENCES action_code_list(id),
+        change_data text,
+        new_data text,
+        time_created timestamp without time zone DEFAULT timezone('utc'::text, now()),
+        user_id integer REFERENCES users(id)
+        );
+        
+        CREATE TABLE IF NOT EXISTS courses_list (
+        id SERIAL PRIMARY KEY,
+        name character varying(255),
+        description text,
+        duration integer,
+        tag json
+        );
+        
+        CREATE TABLE IF NOT EXISTS theme_courses (
+        id SERIAL PRIMARY KEY,
+        course_id integer REFERENCES courses_list(id),
+        name text,
+        duration integer
+        );
+        
+        CREATE TABLE IF NOT EXISTS level_exp_list (
+        id SERIAL PRIMARY KEY,
+        name text
+        );
+        """
+        await self.execute(sql, execute=True)
 
     @staticmethod
     def format_args(sql, parameters: dict):
@@ -74,6 +129,47 @@ class DatabaseUsers:
     async def drop_users(self):
         await self.execute("DROP TABLE IF EXISTS users", execute=True)
 
+    async def select_theme_courses(self, **kwargs):
+        sql = "SELECT * FROM theme_courses WHERE "
+        sql, parameters = self.format_args(sql, parameters=kwargs)
+        return await self.execute(sql, *parameters, fetch=True)
+
+    async def calculate_hours(self, **kwargs):
+        sql = "SELECT SUM(duration) FROM theme_courses WHERE "
+        sql, parameters = self.format_args(sql, parameters=kwargs)
+        return await self.execute(sql, *parameters, fetchrow=True)
+
+    async def add_log(self, code_id, user_id, new_data, change_data):
+        sql = "INSERT INTO data_log (code_id, user_id, new_data, change_data) VALUES($1, $2, $3, $4) returning *"
+        return await self.execute(sql, code_id, user_id, new_data, change_data, fetchrow=True)
+
+    async def select_all_logs(self):
+        sql = "SELECT * FROM data_log"
+        return await self.execute(sql, fetch=True)
+
+    async def select_log(self, **kwargs):
+        sql = "SELECT * FROM data_log WHERE "
+        sql, parameters = self.format_args(sql, parameters=kwargs)
+        return await self.execute(sql, *parameters, fetchrow=True)
+
+    async def select_levels(self):
+        sql = "SELECT * FROM level_exp_list"
+        return await self.execute(sql, fetch=True)
+
+    async def select_level(self, **kwargs):
+        sql = "SELECT * FROM level_exp_list WHERE "
+        sql, parameters = self.format_args(sql, parameters=kwargs)
+        return await self.execute(sql, *parameters, fetchrow=True)
+
+    async def select_courses(self, **kwargs):
+        sql = "SELECT * FROM courses_list WHERE "
+        sql, parameters = self.format_args(sql, parameters=kwargs)
+        return await self.execute(sql, *parameters, fetchrow=True)
+
+    async def find_course(self, keyword):
+        sql = "SELECT * FROM courses_list WHERE LOWER(name) LIKE LOWER($1)"
+        return await self.execute(sql, keyword, fetch=True)
+
     async def execute(self, command, *args,
                       fetch: bool = False,
                       fetchval: bool = False,
@@ -89,7 +185,6 @@ class DatabaseUsers:
                 result = await connection.fetchrow(command, *args)
             elif execute:
                 result = await connection.execute(command, *args)
-        await self.close()
         return result
 
     # Это можно просто скопировать для корректной работы с соединениями

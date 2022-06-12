@@ -1,6 +1,7 @@
 """
 Хэндлер команды /go, для сбора информации о курсе
 """
+from datetime import datetime
 from logging import log, INFO
 
 from aiogram import types
@@ -10,8 +11,8 @@ from aiogram.dispatcher.filters.state import StatesGroup, State
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton, ReplyKeyboardRemove
 
 from filters import AuthCheck
-from loader import dp, db_courses, db_level_exp, db_theme_courses
-from utils.utilities import make_keyboard_list
+from loader import dp, db
+from utils.utilities import make_keyboard_list, validate
 
 
 class Course(StatesGroup):
@@ -21,6 +22,7 @@ class Course(StatesGroup):
     LevelUser =State()
     UserPlan = State()
     UserDayPlan = State()
+    UserDateStart = State()
 
 
 @dp.message_handler(AuthCheck(), commands=['go'])
@@ -37,7 +39,7 @@ async def start_course(message: types.Message):
 
 @dp.message_handler(state=Course.Name)
 async def purpose_name(message: types.Message, state: FSMContext):
-    courses = await db_courses.find_course(f'%{message.text}%')
+    courses = await db.find_course(f'%{message.text}%')
     if courses:
         inline_keyboard = InlineKeyboardMarkup()
         for course in courses:
@@ -52,11 +54,11 @@ async def purpose_name(message: types.Message, state: FSMContext):
 
 @dp.callback_query_handler(Regexp('course_([0-9]*)'), state=Course.Direction)
 async def course_callback(callback: types.CallbackQuery, state: FSMContext):
-    course = await db_courses.select_courses(id=int(callback.data.split("_")[1]))
+    course = await db.select_courses(id=int(callback.data.split("_")[1]))
     async with state.proxy() as data:
         data["course_id"] = int(course["id"])
     buttons = []
-    level_exps = await db_level_exp.select_levels()
+    level_exps = await db.select_levels()
     for level_exp in level_exps:
         buttons.append(level_exp["name"])
     keyboard = make_keyboard_list(buttons)
@@ -69,7 +71,7 @@ async def course_callback(callback: types.CallbackQuery, state: FSMContext):
 @dp.message_handler(state=Course.LevelExp)
 async def level_exp_set(message: types.Message, state: FSMContext):
     try:
-        level_exp = await db_level_exp.select_level(name=message.text)
+        level_exp = await db.select_level(name=message.text)
         async with state.proxy() as data:
             data["level_exp_id"] = int(level_exp["id"])
         await message.reply("Оцени на сколько ты владеешь данной темой? (от 1 до 5, где 5 - владение в совершенстве)",
@@ -81,16 +83,18 @@ async def level_exp_set(message: types.Message, state: FSMContext):
 
 @dp.message_handler(Regexp("^[1-5]"), state=Course.LevelUser)
 async def level_user_set(message: types.Message, state: FSMContext):
-    async with state.proxy() as data:
-        data["level_user"] = int(message.text)
     data = await state.get_data()
-    themes = await db_theme_courses.select_theme_courses(course_id=data['course_id'])
+    themes = await db.select_theme_courses(course_id=data['course_id'])
     # log(INFO, themes)
     msg = "Пока мы с тобой болтали я загрузил программу и готов ее адаптировать под тебя. Вот она:\n"
     for theme in themes:
         msg += f" 🔸 <i>{theme['name']}</i> - {theme['duration']} часа-ов\n"
-    course_duration = await db_theme_courses.calculate_hours(course_id=data['course_id'])
+    course_duration = await db.calculate_hours(course_id=data['course_id'])
+    # course_duration = 592
     msg += f" 🔹 Всего <b>{course_duration}</b> часов."
+    async with state.proxy() as data:
+        data["level_user"] = int(message.text)
+        data["course_duration"] = course_duration
     await message.answer(msg)
     await message.answer("Рутинные дела никто не отменял поэтому, сколько часов ты планируешь заниматься в неделю?")
     await Course.UserPlan.set()
@@ -118,11 +122,30 @@ async def user_plan_set(message: types.Message, state: FSMContext):
 async def user_day_plan_set(message: types.Message, state: FSMContext):
     async with state.proxy() as data:
         data['user_hours_per_day'] = message.text
-
-    # await message.answer("А в день?")
-    # await Course.UserDayPlan.set()
+    data = await state.get_data()
+    calculated_hours_per_day = data['user_hours_per_week'] // 6
+    if calculated_hours_per_day != data['user_hours_per_day']:
+        return await message.reply("Что-то пошло не так. При таком раскладе в день надо заниматься около 5 часов "
+                                   "или в неделю 12 часов. Воскресенье - это святое, отдых.")
+    else:
+        await message.answer("Рассчитал индивидуальный план. Давай сверим, что у меня получилось с твоими ожиданиями. "
+                             "Когда ты планируешь приступить к занятиям?")
+        await Course.UserDateStart.set()
 
 
 @dp.message_handler(state=Course.UserDayPlan)
 async def user_plan_set(message: types.Message, state: FSMContext):
     return await message.answer("Введи число пожалуйста.")
+
+
+@dp.message_handler(state=Course.UserDateStart)
+async def user_date_start_set(message: types.Message, state: FSMContext):
+    if await validate(message.text):
+        data = await state.get_data()
+        date = datetime.strptime(message.text, '%Y-%m-%d')
+        if date < datetime.now():
+            return await message.reply("Введи корректную дату.")
+        months = round(data['course_duration'] / data['user_hours_per_week'] / 3, 0)
+        data_finish = date + months
+    else:
+        return await message.reply("Введи корректную дату.")

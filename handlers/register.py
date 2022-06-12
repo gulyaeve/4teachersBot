@@ -10,18 +10,10 @@ from aiogram.dispatcher.filters.state import StatesGroup, State
 from aiogram.types import ReplyKeyboardRemove
 
 from utils import utilities
-from loader import dp, bot, db_users, db_log
+from loader import dp, bot, db
 import datetime
 
-from utils.utilities import make_keyboard_list
-
-
-async def validate(date_text):
-    try:
-        datetime.datetime.strptime(date_text, '%Y-%m-%d')
-        return 1
-    except ValueError:
-        raise ValueError("Incorrect data format, should be YYYY-MM-DD")
+from utils.utilities import make_keyboard_list, validate
 
 
 class Register(StatesGroup):
@@ -33,7 +25,7 @@ class Register(StatesGroup):
 
 @dp.message_handler(commands=['start'])
 async def start_register(message: types.Message):
-    user = await db_users.select_user(telegram_id=message.from_user.id)
+    user = await db.select_user(telegram_id=message.from_user.id)
     if user["custom_name"] is None:
         fullname = user["full_name"]
     else:
@@ -59,9 +51,9 @@ async def new_name(message: types.Message):
 @dp.message_handler(state=Register.NameSet)
 async def new_name(message: types.Message):
     newname = message.text
-    user = await db_users.select_user(telegram_id=message.from_user.id)
-    await db_log.add_log(1, user["id"], newname, user["custom_name"])
-    await db_users.update_user_customname(newname, message.from_user.id)
+    user = await db.select_user(telegram_id=message.from_user.id)
+    await db.add_log(1, user["id"], newname, user["custom_name"])
+    await db.update_user_customname(newname, message.from_user.id)
     await message.reply(f"Теперь я буду называть тебя {newname}!")
     log(INFO, f"[{message.from_user.id}] saved custom_name {newname}")
     await message.answer("Введите дату рождения")
@@ -70,12 +62,12 @@ async def new_name(message: types.Message):
 
 @dp.message_handler(state=Register.Name)
 async def new_name(message: types.Message):
-    user = await db_users.select_user(telegram_id=message.from_user.id)
+    user = await db.select_user(telegram_id=message.from_user.id)
     fullname = message.from_user.full_name
     await message.reply(f"Хорошо, {fullname}", reply_markup=ReplyKeyboardRemove())
     log(INFO, f"[{message.from_user.id}] saved fullname {fullname}")
-    await db_users.update_user_customname(None, message.from_user.id)
-    await db_log.add_log(1, user["id"], None, user["custom_name"])
+    await db.update_user_customname(None, message.from_user.id)
+    await db.add_log(1, user["id"], None, user["custom_name"])
     await message.answer("Введите дату рождения")
     await Register.Age.set()
 
@@ -84,10 +76,10 @@ async def new_name(message: types.Message):
 async def set_age(message: types.Message, state: FSMContext):
     date = f"{message.text.split('.')[2]}-{message.text.split('.')[1]}-{message.text.split('.')[0]}"
     if await validate(date):
-        await db_users.update_user_datebirth(datetime.datetime.strptime(date, '%Y-%m-%d'), message.from_user.id)
+        await db.update_user_datebirth(datetime.datetime.strptime(date, '%Y-%m-%d'), message.from_user.id)
         log(INFO, f"[{message.from_user.id}] saved age {date}")
         buttons = []
-        user_types = await db_users.select_all_types()
+        user_types = await db.select_all_types()
         for user_type in user_types:
             buttons.append(user_type["description"])
         keyboard = make_keyboard_list(buttons)
@@ -102,8 +94,8 @@ async def set_age(message: types.Message, state: FSMContext):
 @dp.message_handler(state=Register.Type)
 async def set_type(message: types.Message, state: FSMContext):
     try:
-        user_type = await db_users.select_type(description=message.text)
-        await db_users.update_user_type_student(user_type['id'], message.from_user.id)
+        user_type = await db.select_type(description=message.text)
+        await db.update_user_type_student(user_type['id'], message.from_user.id)
         await message.reply(f"Отлично! Теперь тебе доступна команда <b>/go</b> для отслеживания своего прогресса.",
                             reply_markup=ReplyKeyboardRemove())
         log(INFO, f"[{message.from_user.id}] saved type {user_type['name']}")

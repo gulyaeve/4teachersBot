@@ -1,3 +1,4 @@
+from datetime import datetime
 from logging import log, INFO
 
 from aiogram import types
@@ -24,6 +25,13 @@ async def notify_admins(message):
     except:
         log(INFO, f"Admin [{bot_admin}] block this bot")
 
+
+async def validate(date_text):
+    try:
+        datetime.strptime(date_text, '%Y-%m-%d')
+        return 1
+    except ValueError:
+        raise ValueError("Incorrect data format, should be YYYY-MM-DD")
 
 # def get_key(d: dict, value):
 #     for k, v in d.items():
