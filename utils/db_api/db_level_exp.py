@@ -32,6 +32,11 @@ class DatabaseLevelExp:
         sql = "SELECT * FROM level_exp_list"
         return await self.execute(sql, fetch=True)
 
+    async def select_level(self, **kwargs):
+        sql = "SELECT * FROM level_exp_list WHERE "
+        sql, parameters = self.format_args(sql, parameters=kwargs)
+        return await self.execute(sql, *parameters, fetchrow=True)
+
     async def execute(self, command, *args,
                       fetch: bool = False,
                       fetchval: bool = False,

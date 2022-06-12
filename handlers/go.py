@@ -68,7 +68,7 @@ async def course_callback(callback: types.CallbackQuery, state: FSMContext):
 @dp.message_handler(state=Course.LevelExp)
 async def level_exp(message: types.Message, state: FSMContext):
     try:
-        level_exp = await db_level_exp.select_levels(name=message.text)
+        level_exp = await db_level_exp.select_level(name=message.text)
         async with state.proxy() as data:
             data["level_exp_id"] = level_exp["id"]
         await message.reply("Оцени (от 1 до 5) свой уровень владения данной темой?")
