@@ -95,7 +95,7 @@ async def level_user_set(message: types.Message, state: FSMContext):
     msg += f" 🔹 Всего <b>{course_duration['sum']}</b> часов."
     async with state.proxy() as data:
         data["level_user"] = int(message.text)
-        data["course_duration"] = course_duration
+        data["course_duration"] = course_duration['sum']
     await message.answer(msg)
     await message.answer("Рутинные дела никто не отменял поэтому, сколько часов ты планируешь заниматься в неделю?")
     await Course.UserPlan.set()
