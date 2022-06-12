@@ -54,7 +54,7 @@ async def course_callback(callback: types.CallbackQuery, state: FSMContext):
     async with state.proxy() as data:
         data["course_id"] = course["id"]
     buttons = []
-    level_exps = db_level_exp.select_levels()
+    level_exps = await db_level_exp.select_levels()
     for level_exp in level_exps:
         buttons.append(level_exp["name"])
     keyboard = make_keyboard_list(buttons)
