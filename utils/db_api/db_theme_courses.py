@@ -24,6 +24,11 @@ class DatabaseThemeCourses:
         sql, parameters = self.format_args(sql, parameters=kwargs)
         return await self.execute(sql, *parameters, fetch=True)
 
+    async def calculate_hours(self, **kwargs):
+        sql = "SELECT SUM(duration) FROM theme_courses WHERE "
+        sql, parameters = self.format_args(sql, parameters=kwargs)
+        return await self.execute(sql, *parameters, fetchrow=True)
+
     async def execute(self, command, *args,
                       fetch: bool = False,
                       fetchval: bool = False,

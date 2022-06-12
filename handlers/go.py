@@ -20,6 +20,7 @@ class Course(StatesGroup):
     LevelExp = State()
     LevelUser =State()
     UserPlan = State()
+    UserDayPlan = State()
 
 
 @dp.message_handler(AuthCheck(), commands=['go'])
@@ -84,10 +85,12 @@ async def level_user_set(message: types.Message, state: FSMContext):
         data["level_user"] = int(message.text)
     data = await state.get_data()
     themes = await db_theme_courses.select_theme_courses(course_id=data['course_id'])
-    log(INFO, themes)
+    # log(INFO, themes)
     msg = "Пока мы с тобой болтали я загрузил программу и готов ее адаптировать под тебя. Вот она:\n"
     for theme in themes:
         msg += f" 🔸 <i>{theme['name']}</i> - {theme['duration']} часа-ов\n"
+    course_duration = await db_theme_courses.calculate_hours(course_id=data['course_id'])
+    msg += f" 🔹 Всего <b>{course_duration}</b> часов."
     await message.answer(msg)
     await message.answer("Рутинные дела никто не отменял поэтому, сколько часов ты планируешь заниматься в неделю?")
     await Course.UserPlan.set()
@@ -98,7 +101,28 @@ async def level_user_set(message: types.Message, state: FSMContext):
     return await message.answer(f"Ты ввел {message.text} и это не подходит. Введи число от 1 до 5.")
 
 
+@dp.message_handler(Regexp("([0-9]*)"), state=Course.UserPlan)
+async def user_plan_set(message: types.Message, state: FSMContext):
+    async with state.proxy() as data:
+        data['user_hours_per_week'] = message.text
+    await message.answer("А в день?")
+    await Course.UserDayPlan.set()
+
+
 @dp.message_handler(state=Course.UserPlan)
 async def user_plan_set(message: types.Message, state: FSMContext):
-    await message.answer(message.text)
+    return await message.answer("Введи число пожалуйста.")
 
+
+@dp.message_handler(Regexp("([0-9]*)"), state=Course.UserDayPlan)
+async def user_day_plan_set(message: types.Message, state: FSMContext):
+    async with state.proxy() as data:
+        data['user_hours_per_day'] = message.text
+
+    # await message.answer("А в день?")
+    # await Course.UserDayPlan.set()
+
+
+@dp.message_handler(state=Course.UserDayPlan)
+async def user_plan_set(message: types.Message, state: FSMContext):
+    return await message.answer("Введи число пожалуйста.")
