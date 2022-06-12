@@ -37,8 +37,8 @@ class DatabaseCourses:
         return await self.execute(sql, *parameters, fetchrow=True)
 
     async def find_course(self, keyword):
-        sql = "SELECT * FROM courses_list WHERE name LIKE $1"
-        return await self.execute(sql, keyword, fetchrow=True)
+        sql = "SELECT * FROM courses_list WHERE LOWER(name) LIKE LOWER($1)"
+        return await self.execute(sql, keyword, fetch=True)
 
     async def execute(self, command, *args,
                       fetch: bool = False,

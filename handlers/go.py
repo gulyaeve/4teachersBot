@@ -3,6 +3,8 @@
 """
 from aiogram import types
 from aiogram.dispatcher.filters.state import StatesGroup, State
+from aiogram.types import InlineKeyboardMarkup
+
 
 from filters import AuthCheck
 from loader import dp, db_courses
@@ -20,7 +22,7 @@ class Course(StatesGroup):
 @dp.message_handler(AuthCheck(), commands=['go'])
 async def start_course(message: types.Message):
     await message.reply("Чтобы помочь тебе сохранять фокус ответь на несколько моих вопросов. 😇")
-    await message.answer("Как называется курс, который ты выбрал?")
+    await message.answer("С чем связан твой курс? (Например: <code>Python</code>)")
     await Course.Name.set()
 
 
@@ -32,7 +34,11 @@ async def start_course(message: types.Message):
 @dp.message_handler(state=Course.Name)
 async def purpose_name(message: types.Message):
     courses = await db_courses.find_course(f'%{message.text}%')
-    print(courses)
+    inline_keyboard = InlineKeyboardMarkup()
+    for course in courses:
+        inline_keyboard.add(course["name"])
+    await message.answer("Уточни, на каком курсе ты обучаешся:", reply_markup=inline_keyboard)
+    # print(courses)
     # await message.answer(courses)
     # await message.answer("Сколько длится весь курс?")
     # await Course.Duration.set()
