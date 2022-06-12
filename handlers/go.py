@@ -1,7 +1,7 @@
 """
 Хэндлер команды /go, для сбора информации о курсе
 """
-from datetime import datetime
+from datetime import date, timedelta, datetime
 from logging import log, INFO
 
 from aiogram import types
@@ -19,7 +19,7 @@ class Course(StatesGroup):
     Name = State()
     Direction = State()
     LevelExp = State()
-    LevelUser =State()
+    LevelUser = State()
     UserPlan = State()
     UserDayPlan = State()
     UserDateStart = State()
@@ -125,9 +125,9 @@ async def user_day_plan_set(message: types.Message, state: FSMContext):
     calculated_hours_per_day = int(data['user_hours_per_week']) // 6
     if calculated_hours_per_day != int(data['user_hours_per_day']):
         await message.reply(f"Что-то пошло не так. При таком раскладе в день надо заниматься около "
-                                   f"{int(data['user_hours_per_week'])} часов "
-                                   f"или в неделю {int(data['user_hours_per_day']) * 6} часов. "
-                                   f"Воскресенье - это святое, отдых.")
+                            f"{int(data['user_hours_per_week'])} часов "
+                            f"или в неделю {int(data['user_hours_per_day']) * 6} часов. "
+                            f"Воскресенье - это святое, отдых.")
         await message.answer("Введи ещё раз сколько часов ты хочешь заниматься в неделю?")
         await Course.UserPlan.set()
     else:
@@ -145,10 +145,18 @@ async def user_plan_set(message: types.Message, state: FSMContext):
 async def user_date_start_set(message: types.Message, state: FSMContext):
     if await validate(message.text):
         data = await state.get_data()
-        date = datetime.strptime(message.text, '%Y-%m-%d')
-        if date < datetime.now():
+        course_duration = data['course_duration']
+        user_hours_per_day = data['user_hours_per_day']
+        date_start = datetime.strptime(message.text, '%Y-%m-%d')
+        today = date.today()
+        weeks = round(course_duration / user_hours_per_day / 6, 0) + \
+                round(round(course_duration / user_hours_per_day / 6, 0) / 3, 0)
+        day_finish = date_start + timedelta(weeks=weeks)
+        if date_start < today:
             return await message.reply("Введи корректную дату.")
-        months = round(data['course_duration'] / data['user_hours_per_week'] / 3, 0)
-        data_finish = date + months
+        else:
+            await message.answer(f"Расчетное время окончания обучения {day_finish}, "
+                                 f"как только у тебя появится больше времени для обучения пиши мне /finish "
+                                 f"и я cкорректирую индивидуальную траектория обучения.")
     else:
         return await message.reply("Введи корректную дату.")
