@@ -157,8 +157,8 @@ async def user_date_start_set(message: types.Message, state: FSMContext):
         if date_start < today:
             return await message.reply("Введи корректную дату.")
         else:
-            await message.answer(f"Расчетное время окончания обучения {day_finish}, "
-                                 f"как только у тебя появится больше времени для обучения пиши мне /finish "
+            await message.answer(f"Расчетное время окончания обучения <b>{day_finish}</b>, "
+                                 f"как только у тебя появится больше времени для обучения пиши мне <b>/finish</b> "
                                  f"и я cкорректирую индивидуальную траектория обучения.")
     else:
         return await message.reply("Введи корректную дату.")
