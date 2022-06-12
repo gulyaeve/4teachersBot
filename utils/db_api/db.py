@@ -63,6 +63,31 @@ class Database:
         id SERIAL PRIMARY KEY,
         name text
         );
+        
+        CREATE TABLE IF NOT EXISTS user_courses (
+        id integer PRIMARY KEY,
+        user_id bigint REFERENCES users(id),
+        course_date_start timestamp without time zone DEFAULT timezone('utc'::text, now()),
+        course_date_end timestamp without time zone,
+        course_date_end_fact timestamp without time zone,
+        course_level_exp_id integer REFERENCES level_exp_list(id),
+        level_user integer,
+        course_id integer REFERENCES courses_list(id)
+        );
+        
+        CREATE TABLE IF NOT EXISTS achievements_list (
+        id SERIAL PRIMARY KEY,
+        image text,
+        name text,
+        description text
+        );
+        
+        CREATE TABLE IF NOT EXISTS user_achievements (
+        id SERIAL PRIMARY KEY,
+        achivements_id text,
+        time_reciept timestamp without time zone DEFAULT timezone('utc'::text, now()),
+        user_id bigint REFERENCES users(id)
+        );
         """
         await self.execute(sql, execute=True)
 
@@ -169,6 +194,20 @@ class Database:
     async def find_course(self, keyword):
         sql = "SELECT * FROM courses_list WHERE LOWER(name) LIKE LOWER($1)"
         return await self.execute(sql, keyword, fetch=True)
+
+    async def add_course(self, user_id, course_date_start, course_date_end, course_level_exp_id, level_user, course_id):
+        sql = "INSERT INTO user_courses (user_id, course_date_start, course_date_end, course_level_exp_id, level_user, course_id) " \
+              "VALUES($1, $2, $3, $4, $5, $6) returning *"
+        return await self.execute(sql, user_id, course_date_start, course_date_end, course_level_exp_id, level_user, course_id, fetchrow=True)
+
+    async def add_achievement(self, achievement_id, user_id):
+        sql = "INSERT INTO user_achivements (achievement_id, user_id) VALUES ($1, $2) returning *"
+        return await self.execute(sql, achievement_id, user_id, fetchrow=True)
+
+    async def select_achievement(self, **kwargs):
+        sql = "SELECT * FROM achievements_list WHERE "
+        sql, parameters = self.format_args(sql, parameters=kwargs)
+        return await self.execute(sql, *parameters, fetchrow=True)
 
     async def execute(self, command, *args,
                       fetch: bool = False,
