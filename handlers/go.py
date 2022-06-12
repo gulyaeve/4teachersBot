@@ -124,10 +124,12 @@ async def user_day_plan_set(message: types.Message, state: FSMContext):
     async with state.proxy() as data:
         data['user_hours_per_day'] = message.text
     data = await state.get_data()
-    calculated_hours_per_day = data['user_hours_per_week'] // 6
-    if calculated_hours_per_day != data['user_hours_per_day']:
-        return await message.reply("Что-то пошло не так. При таком раскладе в день надо заниматься около 5 часов "
-                                   "или в неделю 12 часов. Воскресенье - это святое, отдых.")
+    calculated_hours_per_day = int(data['user_hours_per_week']) // 6
+    if calculated_hours_per_day != int(data['user_hours_per_day']):
+        return await message.reply(f"Что-то пошло не так. При таком раскладе в день надо заниматься около "
+                                   f"{int(data['user_hours_per_week'])} часов "
+                                   f"или в неделю {int(data['user_hours_per_day']) * 6} часов. "
+                                   f"Воскресенье - это святое, отдых.")
     else:
         await message.answer("Рассчитал индивидуальный план. Давай сверим, что у меня получилось с твоими ожиданиями. "
                              "Когда ты планируешь приступить к занятиям?")
