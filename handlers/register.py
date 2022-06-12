@@ -13,6 +13,8 @@ from utils import utilities
 from loader import dp, bot, db_users, db_log
 import datetime
 
+from utils.utilities import make_keyboard_list
+
 
 async def validate(date_text):
     try:
@@ -26,6 +28,7 @@ class Register(StatesGroup):
     Name = State()
     NameSet = State()
     Age = State()
+    Type = State()
 
 
 @dp.message_handler(commands=['start'])
@@ -83,33 +86,27 @@ async def set_age(message: types.Message, state: FSMContext):
     if await validate(date):
         await db_users.update_user_datebirth(datetime.datetime.strptime(date, '%Y-%m-%d'), message.from_user.id)
         log(INFO, f"[{message.from_user.id}] saved age {date}")
-        await message.reply(f"Отлично! Теперь тебе доступна команда <b>/go</b> для отслеживания своего прогресса.")
-        await state.finish()
+        buttons = []
+        user_types = await db_users.select_all_types()
+        for user_type in user_types:
+            buttons.append(user_type["Description"])
+        keyboard = make_keyboard_list(buttons)
+        await message.reply(f"Начиная изучать что-то, мы становимся на путь изменений и перемен. Если бы ты писал "
+                            f"книгу о переменах, то для того, чтобы лучше всего передать будущим читателям максимум "
+                            f"знаний, тебе бы понадобилось:", reply_markup=keyboard)
+        await Register.Type.set()
     else:
         return await message.reply(f"Введи пожалуйста в формате ДД.ММ.ГГГГ")
 
 
-
-#
-# buttons_1 = ["Что такое рефлексия?", "Круто, давай начнём!"]
-# buttons_2 = ["И чем полезна рефлексия?"]
-# @dp.message_handler(Text(equals=buttons_1[0]), state=Register.Reflection)
-# async def reflection_answer(message: types.Message):
-#     await message.reply("Рефлекси́я — способность человека осознать и восстановить способ, "
-#                         "которым он пользовался для решения поставленной задачи.")
-#     keyboard = utilities.make_keyboard_list(buttons_2)
-#     await message.answer("С помощью рефлексИи люди могут корректировать своё поведение, извлекать опыт из ошибок, "
-#                          "избегать неэффективных поведенческих моделей, ну и  самосовершенствоваться.",
-#                          reply_markup=keyboard)
-#     await Register.ReflectionProfit.set()
-# @dp.message_handler(Text(equals=buttons_1[1]), state=Register.Reflection)
-# async def reflection_not_answer(message: types.Message):
-#     await message.reply("Хорошо, что ты уже знаком с рефлексией!")
-#
-#
-# @dp.message_handler(Text(equals=buttons_2[0]), state=Register.ReflectionProfit)
-# async def reflection_profit_answer(message: types.Message):
-#     await message.reply("После продуктивной рефлексии обычно становится ясно:\n"
-#                         "✅ ради чего стоит изучать данную тему, как она может на самом деле пригодится в будущем;\n"
-#                         "✅ чего ты достиг на во время изучения;\n"
-#                         "✅ можешь ли ты оценивать свой труд.")
+@dp.message_handler(state=Register.Type)
+async def set_type(message: types.Message, state: FSMContext):
+    try:
+        user_type = await db_users.select_type(description=message.text)
+        await db_users.update_user_type_student(user_type['id'], message.from_user.id)
+        await message.reply(f"Отлично! Теперь тебе доступна команда <b>/go</b> для отслеживания своего прогресса.",
+                            reply_markup=ReplyKeyboardRemove())
+        log(INFO, f"[{message.from_user.id}] saved type {user_type['name']}")
+        await state.finish()
+    except:
+        return await message.answer("Выбери пожалуйста на клавиатуре:")

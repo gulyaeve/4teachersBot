@@ -13,6 +13,10 @@ class DatabaseUsers:
 
     async def create_table_users(self):
         sql = """
+        CREATE TABLE IF NOT EXISTS type_student_list (
+        id SERIAL PRIMARY KEY,
+        name text
+        );
         CREATE TABLE IF NOT EXISTS users (
         id SERIAL PRIMARY KEY,
         full_name character varying(255) NOT NULL,
@@ -20,7 +24,8 @@ class DatabaseUsers:
         telegram_id bigint NOT NULL UNIQUE,
         datebirth date,
         custom_name character varying(255),
-        time_created timestamp without time zone DEFAULT timezone('utc'::text, now())
+        time_created timestamp without time zone DEFAULT timezone('utc'::text, now()),
+        type_student_id integer REFERENCES type_student_list(id)
         );
         """
         await self.execute(sql, execute=True)
@@ -53,12 +58,25 @@ class DatabaseUsers:
         sql = "UPDATE users SET datebirth=$1 WHERE telegram_id=$2"
         return await self.execute(sql, datebirth, telegram_id, execute=True)
 
+    async def update_user_type_student(self, type_student_id, telegram_id):
+        sql = "UPDATE users SET type_student_id=$1 WHERE telegram_id=$2"
+        return await self.execute(sql, type_student_id, telegram_id, execute=True)
+
     async def select_all_users(self):
         sql = "SELECT * FROM users"
         return await self.execute(sql, fetch=True)
 
     async def select_user(self, **kwargs):
         sql = "SELECT * FROM users WHERE "
+        sql, parameters = self.format_args(sql, parameters=kwargs)
+        return await self.execute(sql, *parameters, fetchrow=True)
+
+    async def select_all_types(self):
+        sql = "SELECT * FROM type_student_list"
+        return await self.execute(sql, fetch=True)
+
+    async def select_type(self, **kwargs):
+        sql = "SELECT * FROM type_student_list WHERE "
         sql, parameters = self.format_args(sql, parameters=kwargs)
         return await self.execute(sql, *parameters, fetchrow=True)
 

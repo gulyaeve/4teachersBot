@@ -7,8 +7,7 @@ from aiogram import types
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters import Regexp
 from aiogram.dispatcher.filters.state import StatesGroup, State
-from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
-
+from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton, ReplyKeyboardRemove
 
 from filters import AuthCheck
 from loader import dp, db_courses, db_level_exp
@@ -53,7 +52,7 @@ async def purpose_name(message: types.Message, state: FSMContext):
 async def course_callback(callback: types.CallbackQuery, state: FSMContext):
     course = await db_courses.select_courses(id=int(callback.data.split("_")[1]))
     async with state.proxy() as data:
-        data["course_id"] = course["id"]
+        data["course_id"] = int(course["id"])
     buttons = []
     level_exps = await db_level_exp.select_levels()
     for level_exp in level_exps:
@@ -70,8 +69,9 @@ async def level_exp_set(message: types.Message, state: FSMContext):
     try:
         level_exp = await db_level_exp.select_level(name=message.text)
         async with state.proxy() as data:
-            data["level_exp_id"] = level_exp["id"]
-        await message.reply("Оцени на сколько ты владеешь данной темой? (от 1 до 5, где 5 - владение в совершенстве)")
+            data["level_exp_id"] = int(level_exp["id"])
+        await message.reply("Оцени на сколько ты владеешь данной темой? (от 1 до 5, где 5 - владение в совершенстве)",
+                            reply_markup=ReplyKeyboardRemove())
         await Course.LevelUser.set()
     except:
         return await message.answer("Выбери пожалуйста на клавиатуре:")
@@ -80,30 +80,22 @@ async def level_exp_set(message: types.Message, state: FSMContext):
 @dp.message_handler(Regexp("^[1-5]"), state=Course.LevelUser)
 async def level_user_set(message: types.Message, state: FSMContext):
     await message.answer(f"Ты ввел {message.text}. И это подходит")
-
+    async with state.proxy() as data:
+        data["level_user"] = int(message.text)
 
 
 @dp.message_handler(state=Course.LevelUser)
 async def level_user_set(message: types.Message, state: FSMContext):
     return await message.answer(f"Ты ввел {message.text} и это не подходит. Введи число от 1 до 5.")
+
+
 # @dp.message_handler(state=Course.Duration)
 # async def purpose_duration(message: types.Message):
 #     await message.answer("Сколько времени в неделю ты готов(а) уделять в неделю?")
 #     await Course.Week.set()
 #
 #
-# @dp.message_handler(state=Course.Week)
-# async def purpose_week(message: types.Message):
-#     buttons = ["это моя работа", "это мое хобби", "хочу начать жизнь заново", "просто для интереса", "для учебы"]
-#     keyboard = make_keyboard_list(buttons)
-#     await message.answer("Как с тобой связана данная тема?", reply_markup=keyboard)
-#     await Course.Connect.set()
 #
-#
-# @dp.message_handler(state=Course.Connect)
-# async def purpose_connect(message: types.Message):
-#     await message.answer("Оцени (от 1 до 5) свой уровень владения данной темой?")
-#     await Course.Hold.set()
 #
 #
 # @dp.message_handler(state=Course.Hold)
