@@ -27,6 +27,8 @@ class Course(StatesGroup):
 
 @dp.message_handler(AuthCheck(), commands=['go'])
 async def start_course(message: types.Message):
+    stiker_smile = await db.select_stiker(emoji="thinking")
+    await message.answer_sticker(stiker_smile['code'])
     await message.reply("Чтобы помочь тебе сохранять фокус ответь на несколько моих вопросов. 😇")
     await message.answer("С чем связан твой курс? (Например: <code>Python</code> или <code>Data Scientist</code>)")
     await Course.Name.set()
