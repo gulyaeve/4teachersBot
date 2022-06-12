@@ -153,6 +153,7 @@ async def user_date_start_set(message: types.Message, state: FSMContext):
         weeks = round(course_duration / user_hours_per_day / 6, 0) + \
                 round(round(course_duration / user_hours_per_day / 6, 0) / 3, 0)
         day_finish = date_start + timedelta(weeks=weeks)
+        day_finish = datetime.strftime(day_finish, '%d.%m.%Y')
         if date_start < today:
             return await message.reply("Введи корректную дату.")
         else:
