@@ -49,7 +49,9 @@ async def purpose_name(message: types.Message, state: FSMContext):
 
 @dp.callback_query_handler(Regexp('course_([0-9]*)'))
 async def course_callback(callback: types.CallbackQuery):
-    await callback.answer(f"Отличный выбор. А ты знаешь, что более 50% слушателей выбирают {callback.message.text}"
+    # print(callback.data.split("_")[1])
+    course = await db_courses.select_courses(id=callback.data.split("_")[1])
+    await callback.answer(f"Отличный выбор. А ты знаешь, что более 50% слушателей выбирают {course['name']}"
                           f"IT-направление и кардинально меняют свою профессиональную деятельность.\n"
                           f"А почему ты выбрал это направление?")
 
