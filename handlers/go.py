@@ -143,7 +143,7 @@ async def user_plan_set(message: types.Message, state: FSMContext):
 
 @dp.message_handler(state=Course.UserDateStart)
 async def user_date_start_set(message: types.Message, state: FSMContext):
-    user = db.select_user(telegram_id=message.from_user.id)
+    user = await db.select_user(telegram_id=message.from_user.id)
     input_date = f"{message.text.split('.')[2]}-{message.text.split('.')[1]}-{message.text.split('.')[0]}"
     if await validate(input_date):
         data = await state.get_data()
