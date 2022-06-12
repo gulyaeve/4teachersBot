@@ -154,7 +154,7 @@ async def user_date_start_set(message: types.Message, state: FSMContext):
         weeks = round(course_duration / user_hours_per_day / 6, 0) + \
                 round(round(course_duration / user_hours_per_day / 6, 0) / 3, 0)
         day_finish = date_start + timedelta(weeks=weeks)
-        day_finish = datetime.strftime(day_finish, '%d.%m.%Y')
+        day_finish_rus = datetime.strftime(day_finish, '%d.%m.%Y')
         if date_start < today:
             return await message.reply("Я согласен с тем, что надо было начинать раньше, но второе лучшее время "
                                        "это сейчас) или завтра) 😅")
@@ -163,7 +163,7 @@ async def user_date_start_set(message: types.Message, state: FSMContext):
                                 data['level_exp_id'], data['level_user'], data['course_id'])
             await db.add_log(2, user['id'], data['course_id'])
             log(INFO, f"[{message.from_user.id}] start course ")
-            await message.answer(f"Расчетное время окончания обучения <b>{day_finish}</b>, "
+            await message.answer(f"Расчетное время окончания обучения <b>{day_finish_rus}</b>, "
                                  f"как только у тебя появится больше времени для обучения пиши мне <b>/finish</b> "
                                  f"и я cкорректирую индивидуальную траектория обучения.")
     else:
