@@ -83,8 +83,7 @@ async def level_user_set(message: types.Message, state: FSMContext):
     async with state.proxy() as data:
         data["level_user"] = int(message.text)
     data = await state.get_data()
-    themes = await db_theme_courses.select_theme_courses(id=data['course_id'])
-    log(INFO, themes)
+    themes = await db_theme_courses.select_theme_courses(course_id=data['course_id'])
     msg = "Пока мы с тобой болтали я загрузил программу и готов ее адаптировать под тебя. Вот она:\n"
     for theme in themes:
         msg += f" 🔸 <i>{theme['name']}</i> - {theme['duration']} часа-ов\n"
