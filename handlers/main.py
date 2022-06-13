@@ -14,7 +14,8 @@ async def help_command(message: types.Message):
     <b>/go</b> - начать отслеживать свой прогресс;\n
     <b>/cancel</b> - отмена текущего действия;\n
     """
-    await message.answer_sticker(await db.select_stiker(emoji="tricky")['code'])
+    tricky_stiker = await db.select_stiker(emoji="tricky")
+    await message.answer_sticker(tricky_stiker['code'])
     await message.answer(help_message)
 
 
