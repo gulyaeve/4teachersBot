@@ -3,7 +3,7 @@ from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters import Text
 from logging import log, INFO
 
-from loader import dp
+from loader import dp, db
 
 
 @dp.message_handler(commands=['help'])
@@ -14,6 +14,7 @@ async def help_command(message: types.Message):
     <b>/go</b> - начать отслеживать свой прогресс;\n
     <b>/cancel</b> - отмена текущего действия;\n
     """
+    await message.answer_sticker(await db.select_stiker(emoji="tricky")['code'])
     await message.answer(help_message)
 
 
