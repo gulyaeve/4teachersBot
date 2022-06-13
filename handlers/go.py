@@ -96,6 +96,8 @@ async def level_user_set(message: types.Message, state: FSMContext):
     async with state.proxy() as data:
         data["level_user"] = int(message.text)
         data["course_duration"] = course_duration['sum']
+    confused_sticker = await db.select_stiker(emoji='confused')
+    await message.answer_sticker(confused_sticker['code'])
     await message.answer(msg)
     await message.answer("Рутинные дела никто не отменял поэтому, сколько часов ты планируешь заниматься в неделю?")
     await Course.UserPlan.set()
@@ -165,6 +167,8 @@ async def user_date_start_set(message: types.Message, state: FSMContext):
                                              data['level_exp_id'], data['level_user'], data['course_id'])
             await db.add_log(2, user['id'], str(data['course_id']), None)
             log(INFO, f"[{message.from_user.id}] start course [{new_course}]")
+            laughing_sticker = await db.select_stiker(emoji='laughing')
+            await message.answer_sticker(laughing_sticker['code'])
             await message.answer(f"Расчетное время окончания обучения <b>{day_finish_rus}</b>, "
                                  f"как только у тебя появится больше времени для обучения пиши мне <b>/finish</b> "
                                  f"и я cкорректирую индивидуальную траектория обучения.")
