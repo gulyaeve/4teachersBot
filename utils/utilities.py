@@ -16,6 +16,7 @@ async def set_default_commands():
         types.BotCommand(command="/start", description="Начать работу с чат-ботом"),
         types.BotCommand(command="/go", description="Начать отслеживать свой прогресс"),
         types.BotCommand(command="/help", description="Помощь по командам чат-бота"),
+        types.BotCommand(command="/cancel", description="Отмена текущего действия"),
     ])
 
 

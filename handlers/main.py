@@ -11,7 +11,7 @@ async def help_command(message: types.Message):
     help_message = """
     Помощь по командам:\n
     <b>/start</b> - начало взаимодействия с ботом;\n
-    <b>/go</b> - Начать отслеживать свой прогресс;\n
+    <b>/go</b> - начать отслеживать свой прогресс;\n
     <b>/cancel</b> - отмена текущего действия;\n
     """
     await message.answer(help_message)
