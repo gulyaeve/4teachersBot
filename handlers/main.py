@@ -40,4 +40,6 @@ async def cancel_handler(message: types.Message, state: FSMContext):
     """
     log(INFO, f"[{message.from_user.id}] отменил действие.")
     await state.finish()
+    sad_sticker = await db.select_stiker(emoji="sad")
+    await message.answer_sticker(sad_sticker['code'])
     await message.reply('Действие отменено.', reply_markup=types.ReplyKeyboardRemove())
